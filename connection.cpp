@@ -57,7 +57,7 @@ bool Connection::send(const Message &msg) {
     m_last_result = INVALID_MSG;
     return false;
   }
-  std::string msg_str = msg.tag + msg.data;
+  std::string msg_str = msg.tag + ":" + msg.data;
   ssize_t size = rio_writen(m_fd, msg_str.c_str(), strlen(msg_str.c_str()));
   if (size < 0) {
     m_last_result = EOF_OR_ERROR;
