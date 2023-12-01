@@ -2,6 +2,7 @@
 #define CONNECTION_H
 
 #include "csapp.h"
+#include "vector"
 struct Message;
 
 class Connection {
@@ -31,8 +32,10 @@ public:
   // Connect to a server via specified hostname and port number.
   void connect(const std::string &hostname, int port);
 
+  // return true if the connection is open
   bool is_open() const;
 
+  // close the connection if it is open
   void close();
 
   // send and receive should set m_last_result to indicate
@@ -41,6 +44,11 @@ public:
   // or whether the format of the received message was invalid
   bool send(const Message &msg);
   bool receive(Message &msg);
+
+  // Helper function to divide the data by ":".
+  // For example, if the data is 'A:B:C', then we store A, B, and C
+  // in the vector, respectively.
+  std::vector<std::string> divide_data(Message &msg);
 
   Result get_last_result() const { return m_last_result; }
 

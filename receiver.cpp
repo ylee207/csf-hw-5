@@ -20,7 +20,6 @@ int main(int argc, char **argv) {
 
   Connection conn;
 
-  // TODO: connect to server
   // Connect to server
   conn.connect(server_hostname, server_port);
   // If connection is not open, then it means we have error with connecting to server
@@ -29,8 +28,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  // TODO: send rlogin and join messages (expect a response from
-  //       the server for each one)
+  // send rlogin and join messages (expect a response from the server for each one)
 
   // send rlogin
   Message rlogin_msg(TAG_RLOGIN, username);
@@ -49,7 +47,7 @@ int main(int argc, char **argv) {
   }
   if (rlogin_response.tag == TAG_ERR) {
     std::string err_msg = rlogin_response.data;
-    std::cerr << err_msg.c_str() << "\n";
+    std::cerr << err_msg.c_str();
     exit(1);
   }
 
@@ -70,12 +68,12 @@ int main(int argc, char **argv) {
   }
   if (join_response.tag == TAG_ERR) {
     std::string err_msg = join_response.data;
-    std::cerr << err_msg.c_str() << "\n";
+    std::cerr << err_msg.c_str();
     exit(1);
   }
 
-  // TODO: loop waiting for messages from server
-  //       (which should be tagged with TAG_DELIVERY)
+  // loop waiting for messages from server
+  // (which should be tagged with TAG_DELIVERY)
   // We assume that the delivery from the server will be in the format 'delivery:[room]:[sender]:[message]'. (except for error cases)
   while (1) {
     Message msg_from_server;
@@ -86,7 +84,7 @@ int main(int argc, char **argv) {
     }
     if (msg_from_server.tag == TAG_ERR) {
       std::string err_msg = msg_from_server.data;
-      std::cerr << err_msg.c_str() << "\n";
+      std::cerr << err_msg.c_str();
       exit(1);
     }
     if (msg_from_server.tag == TAG_DELIVERY) {
@@ -114,7 +112,7 @@ int main(int argc, char **argv) {
       
       // Print data_storage[1] and data_storage[2] if they exist
       if (data_storage.size() > 2) {
-        fprintf(stdout, "%s: %s\n", data_storage[1].c_str(), data_storage[2].c_str());
+        fprintf(stdout, "%s: %s", data_storage[1].c_str(), data_storage[2].c_str());
       }
     }
   }

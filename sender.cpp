@@ -21,15 +21,15 @@ int main(int argc, char **argv) {
   server_port = std::stoi(argv[2]);
   username = argv[3];
 
-  // TODO: connect to server
+  // connect to server
   Connection conn;
   conn.connect(server_hostname, server_port);
   if (!conn.is_open()) {
-    std::cerr << "Couldn't connect to server.\n";
+    std::cerr << "Could not connect to server\n";
     exit(1);
   }
 
-  // TODO: send slogin message
+  // send slogin message
   Message slogin_msg(TAG_SLOGIN, username);
   bool send_status = conn.send(slogin_msg);
   if (!send_status) {
@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
+  // handle error case when receiving slogin is not successful.
   Message received_msg;
   bool recived_status = conn.receive(received_msg);
   if (!recived_status) {
@@ -45,13 +46,12 @@ int main(int argc, char **argv) {
   }
   if (received_msg.tag == TAG_ERR) {
     std::string err_msg = received_msg.data;
-    std::cerr << err_msg.c_str() << "\n";
+    std::cerr << err_msg.c_str();
     exit(1);
   }
 
 
-  // TODO: loop reading commands from user, sending messages to
-  //       server as appropriate
+  // loop reading commands from user, sending messages to server as appropriate
   while (1) {
     bool send_status;
     bool receive_status;
@@ -81,32 +81,7 @@ int main(int argc, char **argv) {
       }
       if (join_receive_response.tag == TAG_ERR) {
         std::string err_msg = join_receive_response.data;
-        std::cerr << err_msg.c_str() << "\n";
-      }
-      continue;
-    }
-
-
-    // sendall:[message text]
-    command_type = "/sendall";
-    pos = user_command.find(command_type);
-    // if '/sendall' is found
-    if (pos != std::string::npos) {
-      Message msg_sendall(TAG_SENDALL, user_command);
-      send_status = conn.send(msg_sendall);
-      if (!send_status) {
-        std::cerr << "Sending sendall not successful.\n";
-        exit(1);
-      }
-      Message sendall_response;
-      receive_status = conn.receive(sendall_response);
-      if (!receive_status) {
-        std::cerr << "Receiving after sendall not successful.\n";
-        exit(1);
-      }
-      if (sendall_response.tag == TAG_ERR) {
-        std::string err_msg = sendall_response.data;
-        std::cerr << err_msg.c_str() << "\n";
+        std::cerr << err_msg.c_str();
       }
       continue;
     }
@@ -161,6 +136,23 @@ int main(int argc, char **argv) {
       break;
     }
 
+    // sendall:[message text]
+    Message msg_sendall(TAG_SENDALL, user_command);
+    send_status = conn.send(msg_sendall);
+    if (!send_status) {
+      std::cerr << "Sending sendall not successful.\n";
+      exit(1);
+    }
+    Message sendall_response;
+    receive_status = conn.receive(sendall_response);
+    if (!receive_status) {
+      std::cerr << "Receiving after sendall not successful.\n";
+      exit(1);
+    }
+    if (sendall_response.tag == TAG_ERR) {
+      std::string err_msg = sendall_response.data;
+      std::cerr << err_msg.c_str();
+    }
   }
 
   return 0;
