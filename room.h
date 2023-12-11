@@ -19,9 +19,8 @@ public:
 
   void add_member(User *user);
   void remove_member(User *user);
-
+  bool member_exists(User *user);
   void broadcast_message(const std::string &sender_username, const std::string &message_text);
-
 private:
   std::string room_name;
   pthread_mutex_t lock;

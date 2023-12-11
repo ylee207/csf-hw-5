@@ -3,11 +3,10 @@
 
 #include <map>
 #include <string>
-#include <pthread.h>
 #include "connection.h"
 #include "user.h"
 #include "message.h"
-
+#include <pthread.h>
 class Room;
 
 class Server {
@@ -19,9 +18,15 @@ public:
 
   void handle_client_requests();
 
+  bool isValidSock();
+  
+
+  void com_sender(Connection *conn, Server *server, User *user);
+  void com_receiver(Connection *conn, Server *server, User *user);
+
+
   Room *find_or_create_room(const std::string &room_name);
-  void chat_with_sender(Connection *conn, Server *server, User* user);
-  void chat_with_receiver(Connection *conn, Server *server, User *user);
+
 private:
   // prohibit value semantics
   Server(const Server &);
