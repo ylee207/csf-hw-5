@@ -37,16 +37,16 @@ void *worker(void *arg) {
   //       to communicate with a client (sender or receiver)
   ServerConnection *serverConn = static_cast<ServerConnection*>(arg);
   Message msg;
-  serverConn->connection->receive(msg);
+  bool login = serverConn->connection->receive(msg);
   std::string usertype;
   // TODO: read login message (should be tagged either with
   //       TAG_SLOGIN or TAG_RLOGIN), send response
   if (msg.tag == TAG_SLOGIN) {
-    Message response(TAG_SLOGIN, "Sender logged in");
+    Message response(TAG_OK, "Sender logged in");
     serverConn->connection->send(response); 
     usertype = "sender";
   } else if (msg.tag == TAG_RLOGIN) {
-    Message response(TAG_RLOGIN, "Receiver logged in");
+    Message response(TAG_OK, "Receiver logged in");
     serverConn->connection->send(response); 
     usertype = "receiver";
   } else if (msg.tag == TAG_ERR){
@@ -104,17 +104,17 @@ void Server::chat_with_receiver(Connection *conn, Server *server, User *user) {
 }
 void Server::chat_with_sender(Connection *conn, Server *server, User* user) {
   Room *room = nullptr;
-  Message msg = Message();
   while (conn->is_open()) {
-    
-    if (!conn->receive(msg)) {
+    Message msg = Message();
+    bool reception = conn->receive(msg);
+    if (!reception) {
       Message response(TAG_ERR, "Receive error");
       conn->send(response);
       break;
     } else {
     if (msg.tag == TAG_QUIT) {
       Message response(TAG_OK, "Quit successful");
-      conn->send(response);
+      bool quiting = conn->send(response);
       break;
     } else if (msg.tag == TAG_JOIN) {
       if (room != nullptr) {        
@@ -122,7 +122,7 @@ void Server::chat_with_sender(Connection *conn, Server *server, User* user) {
       } 
       room = server->find_or_create_room(msg.data);
       room->add_member(user);
-      Message response(TAG_OK, room->get_room_name() + ":Join successful" );
+      Message response(TAG_OK, "Join successful" );
       conn->send(response);
     } else if(msg.tag == TAG_LEAVE) {
       if (room->member_exists(user)) {
@@ -156,19 +156,25 @@ void Server::chat_with_sender(Connection *conn, Server *server, User* user) {
 Server::Server(int port)
   : m_port(port)
   , m_ssock(-1) {
-  pthread_mutex_init(&m_lock, NULL);
+  pthread_mutex_init(&m_lock, nullptr);
 
 }
 
 Server::~Server() {
   pthread_mutex_destroy(&m_lock);
-  close(m_ssock);
+  //close(m_ssock);
 }
 
 bool Server::listen() {
   std::string toStr = std::to_string(m_port);
-  m_ssock = open_listenfd(toStr.c_str());
-  return m_ssock != -1;
+  const char * cstr = toStr.c_str();
+  m_ssock = open_listenfd(cstr);
+  if (m_ssock < 0) {
+    return false;
+  } else {
+    return true;
+  }
+
 
   // TODO: use open_listenfd to create the server socket, return true
   //       if successful, false if not
@@ -178,7 +184,7 @@ void Server::handle_client_requests() {
   // TODO: infinite loop calling accept or Accept, starting a new
   //       pthread for each connected client
     while (true) {
-        int client = accept(m_ssock, NULL, NULL);
+        int client = accept(m_ssock, nullptr, nullptr);
         if (client < 0) {
             // Error handling
             std::cerr << "Error accepting client connection" << std::endl;
